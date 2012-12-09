@@ -12,6 +12,59 @@ makeTimeline = (d,i) ->
 	    createStoryJS(timelineoptions)
 	)
 
+makeTributary = (element, gistID) ->
+
+    $.ajax({
+        url: "https://api.github.com/gists/"+gistID,
+        cache: false
+    })
+    .done((gist) ->
+
+        console.log "GISTY", gist
+        snippet = gist.files['inlet.js'].content;
+        #readme = gist.files['README'].content;
+
+        #readme_firstline = readme.split('\n')[0].substring(1);
+
+        #readme = gist.files['README'].content.split('\n').splice(1,2).join('\n');
+
+        snippet_data = {
+            gist_url: gist.html_url,
+            code: snippet
+        }
+
+        snippetHTML = ich.snippet(snippet_data);
+
+        $('#snippets').append(snippetHTML);
+
+
+        codefile = $(element+' .code').text();
+        display_div = d3.select(element+' .example');
+        editor_div = d3.select(element+' .editor');
+        $(element+' .code').hide();
+
+        tb = Tributary();
+        render = "svg";
+        config = new tb.Config({display: render});
+        model = new tb.CodeModel({code: codefile});
+
+        tribcont = new tb.TributaryContext({
+        config: config,
+        model: model,
+        el: display_div.node()
+        })
+        tribcont.render();
+        tribcont.execute();
+
+        editor = new tb.Editor({
+        model: model,
+        el: editor_div.node()
+        });
+        editor.render();
+    )
+
+
+
 
 makeNavbar = (sections) ->
     sectioncount = 0
@@ -36,6 +89,8 @@ makeNavbar = (sections) ->
         else
             $("#nav").addClass("nav-expanded")
     )
+
+
     $("#nav-expand").hoverIntent({
         sensitivity: 2
         interval: 120
@@ -45,13 +100,8 @@ makeNavbar = (sections) ->
                 $("#nav").removeClass("nav-expanded")
             else
                 $("#nav").addClass("nav-expanded")
-        ###out: ->
-            if $("#nav").hasClass("nav-expanded")
-                $("#nav").css("left", "-190px").removeClass("nav-expanded")
-            else
-                $("#nav").css("left", 0).addClass("nav-expanded")
-        ###
         })
+
 
 
 
